@@ -1,6 +1,7 @@
 /* ============================================================
-   AL MASUM GAZI — PREMIUM PORTFOLIO ENGINE
-   Advanced Interactions / ~1000 Lines
+   AL MASUM GAZI — PORTFOLIO ENGINE v4.0
+   Premium Interactive Experience with Three.js, Sound Design,
+   Dark/Light Mode, Testimonials, Metrics, and Easter Eggs
    ============================================================ */
 
 (function () {
@@ -14,7 +15,7 @@
     const loaderCounter = document.getElementById('loader-counter');
     const loaderText = document.getElementById('loader-text');
 
-    // Split loader text into individual characters
+    // Split loader text into characters with staggered animation
     function splitLoaderText() {
         const text = loaderText.textContent;
         loaderText.innerHTML = '';
@@ -27,10 +28,10 @@
     }
     splitLoaderText();
 
-    // Simulate loading progress
+    // Simulate loading with exponential progress
     let loadProgress = 0;
     const loadInterval = setInterval(() => {
-        loadProgress += Math.random() * 15;
+        loadProgress += Math.random() * 12 + 3;
         if (loadProgress > 100) loadProgress = 100;
         loaderBar.style.width = loadProgress + '%';
         loaderCounter.textContent = Math.floor(loadProgress);
@@ -44,45 +45,154 @@
     }, 100);
 
     // ============================================================
-    // 2. NOISE / GRAIN CANVAS
+    // 2. CINEMATIC NOISE / GRAIN OVERLAY
     // ============================================================
     const noiseCanvas = document.getElementById('noise-canvas');
     const noiseCtx = noiseCanvas.getContext('2d');
 
     function resizeNoiseCanvas() {
-        noiseCanvas.width = window.innerWidth;
-        noiseCanvas.height = window.innerHeight;
+        noiseCanvas.width = Math.floor(window.innerWidth / 2);
+        noiseCanvas.height = Math.floor(window.innerHeight / 2);
     }
     resizeNoiseCanvas();
     window.addEventListener('resize', resizeNoiseCanvas);
 
-    function generateNoise() {
-        const imageData = noiseCtx.createImageData(noiseCanvas.width, noiseCanvas.height);
-        const data = imageData.data;
-        const len = data.length;
-        for (let i = 0; i < len; i += 4) {
-            const value = Math.random() * 255;
-            data[i] = value;
-            data[i + 1] = value;
-            data[i + 2] = value;
-            data[i + 3] = 255;
-        }
-        noiseCtx.putImageData(imageData, 0, 0);
-    }
-
-    // Run noise at lower fps for performance
     let noiseFrame = 0;
-    function animateNoise() {
+    function generateNoise() {
         noiseFrame++;
+        // Run at ~20fps for performance
         if (noiseFrame % 3 === 0) {
-            generateNoise();
+            const imageData = noiseCtx.createImageData(noiseCanvas.width, noiseCanvas.height);
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const v = Math.random() * 255;
+                data[i] = v;
+                data[i + 1] = v;
+                data[i + 2] = v;
+                data[i + 3] = 255;
+            }
+            noiseCtx.putImageData(imageData, 0, 0);
         }
-        requestAnimationFrame(animateNoise);
+        requestAnimationFrame(generateNoise);
     }
-    animateNoise();
+    generateNoise();
 
     // ============================================================
-    // 3. CUSTOM CURSOR WITH TRAIL
+    // 3. THREE.JS INTERACTIVE PARTICLE HERO
+    // ============================================================
+    let threeScene, threeCamera, threeRenderer, particleSystem;
+    let particleMouseX = 0, particleMouseY = 0;
+
+    function initThreeJS() {
+        // Guard: Three.js must be loaded
+        if (typeof THREE === 'undefined') {
+            console.warn('Three.js not loaded — skipping particle hero');
+            return;
+        }
+
+        const canvas = document.getElementById('hero-canvas');
+        if (!canvas) return;
+
+        // Scene setup
+        threeScene = new THREE.Scene();
+        threeCamera = new THREE.PerspectiveCamera(
+            75,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000
+        );
+        threeCamera.position.z = 50;
+
+        // Renderer
+        threeRenderer = new THREE.WebGLRenderer({
+            canvas: canvas,
+            alpha: true,
+            antialias: true,
+        });
+        threeRenderer.setSize(window.innerWidth, window.innerHeight);
+        threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Create particle geometry
+        const particleCount = 2000;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount; i++) {
+            // Spread particles in a 3D sphere-ish distribution
+            positions[i * 3] = (Math.random() - 0.5) * 100;
+            positions[i * 3 + 1] = (Math.random() - 0.5) * 80;
+            positions[i * 3 + 2] = (Math.random() - 0.5) * 60;
+
+            // Colors: accent-tinted with variation
+            const intensity = 0.3 + Math.random() * 0.7;
+            colors[i * 3] = intensity;           // Red
+            colors[i * 3 + 1] = intensity * 0.24; // Green (orange tint)
+            colors[i * 3 + 2] = 0;               // Blue
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        // Material with additive blending for glow effect
+        const material = new THREE.PointsMaterial({
+            size: 0.8,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.AdditiveBlending,
+            sizeAttenuation: true,
+        });
+
+        particleSystem = new THREE.Points(geometry, material);
+        threeScene.add(particleSystem);
+
+        // Track mouse for particle interaction
+        document.addEventListener('mousemove', (e) => {
+            particleMouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+            particleMouseY = -(e.clientY / window.innerHeight - 0.5) * 2;
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            threeCamera.aspect = window.innerWidth / window.innerHeight;
+            threeCamera.updateProjectionMatrix();
+            threeRenderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Start the Three.js render loop
+        animateThreeJS();
+    }
+
+    function animateThreeJS() {
+        requestAnimationFrame(animateThreeJS);
+        if (!particleSystem || !threeRenderer) return;
+
+        const time = Date.now() * 0.0005;
+
+        // Rotate particle field based on time + mouse
+        particleSystem.rotation.y = time * 0.08 + particleMouseX * 0.3;
+        particleSystem.rotation.x = particleMouseY * 0.15;
+
+        // Gentle wave motion on Y positions
+        const positions = particleSystem.geometry.attributes.position.array;
+        for (let i = 0; i < positions.length; i += 3) {
+            positions[i + 1] += Math.sin(time * 2 + positions[i] * 0.05) * 0.008;
+        }
+        particleSystem.geometry.attributes.position.needsUpdate = true;
+
+        // Fade particles as user scrolls away from hero
+        const scrollFade = Math.max(0.02, 1 - scrollCurrent / (window.innerWidth * 3));
+        particleSystem.material.opacity = scrollFade * 0.6;
+
+        threeRenderer.render(threeScene, threeCamera);
+    }
+
+    // Initialize Three.js after a brief delay for DOM readiness
+    setTimeout(initThreeJS, 100);
+
+    // ============================================================
+    // 4. CUSTOM CURSOR WITH SMOOTH TRAIL
     // ============================================================
     const cursor = document.getElementById('cursor');
     const trails = [
@@ -95,36 +205,28 @@
     let mouseY = window.innerHeight / 2;
     let cursorX = mouseX;
     let cursorY = mouseY;
-
-    const trailPositions = trails.map(() => ({
-        x: mouseX,
-        y: mouseY,
-    }));
+    const trailPositions = trails.map(() => ({ x: mouseX, y: mouseY }));
 
     document.addEventListener('mousemove', (e) => {
         mouseX = e.clientX;
         mouseY = e.clientY;
     });
 
-    document.addEventListener('mousedown', () => {
-        cursor.classList.add('clicking');
-    });
+    document.addEventListener('mousedown', () => cursor.classList.add('clicking'));
+    document.addEventListener('mouseup', () => cursor.classList.remove('clicking'));
 
-    document.addEventListener('mouseup', () => {
-        cursor.classList.remove('clicking');
-    });
-
-    // Smooth cursor follow with lerp
     function updateCursor() {
-        // Main cursor with fast lerp
+        // Main cursor with fast interpolation
         cursorX += (mouseX - cursorX) * 0.15;
         cursorY += (mouseY - cursorY) * 0.15;
         cursor.style.left = cursorX + 'px';
         cursor.style.top = cursorY + 'px';
 
-        // Trail follows with increasing delay
+        // Trailing elements with cascading delay
         trailPositions.forEach((pos, i) => {
-            const target = i === 0 ? { x: cursorX, y: cursorY } : trailPositions[i - 1];
+            const target = i === 0
+                ? { x: cursorX, y: cursorY }
+                : trailPositions[i - 1];
             const speed = 0.08 - i * 0.015;
             pos.x += (target.x - pos.x) * speed;
             pos.y += (target.y - pos.y) * speed;
@@ -139,19 +241,21 @@
     }
     updateCursor();
 
-    // Hover state for interactive elements
+    // Enlarge cursor on interactive elements
     function setupCursorHover() {
-        const interactables = document.querySelectorAll(
-            'a, button, .exp-card, .edu-card, .cert-tag, .skill-row, .exp-skill-tag, [data-magnetic]'
+        const targets = document.querySelectorAll(
+            'a, button, .exp-card, .edu-card, .cert-tag, .skill-row, ' +
+            '.exp-skill-tag, [data-magnetic], .t-dot, .float-btn, ' +
+            '.whatsapp-widget, .blog-card, .case-metric-card, .orbit-item'
         );
-        interactables.forEach((el) => {
+        targets.forEach((el) => {
             el.addEventListener('mouseenter', () => cursor.classList.add('hovering'));
             el.addEventListener('mouseleave', () => cursor.classList.remove('hovering'));
         });
     }
 
     // ============================================================
-    // 4. SMOOTH HORIZONTAL SCROLL ENGINE
+    // 5. SMOOTH HORIZONTAL SCROLL ENGINE
     // ============================================================
     const scrollContainer = document.getElementById('scroll-container');
     const panels = document.querySelectorAll('.panel');
@@ -159,102 +263,63 @@
     const panelCounterCurrent = document.querySelector('.panel-counter .current');
     const totalPanelsEl = document.getElementById('total-panels');
 
-    totalPanelsEl.textContent = String(panels.length).padStart(2, '0');
+    if (totalPanelsEl) {
+        totalPanelsEl.textContent = String(panels.length).padStart(2, '0');
+    }
 
     let scrollTarget = 0;
     let scrollCurrent = 0;
-    let scrollEase = 0.06; // Lower = smoother but slower
     let scrollVelocity = 0;
-    let isScrolling = false;
+    const scrollEase = 0.06;
     let maxScroll = 0;
 
     function calculateMaxScroll() {
         maxScroll = scrollContainer.scrollWidth - window.innerWidth;
     }
     calculateMaxScroll();
-    window.addEventListener('resize', calculateMaxScroll);
+    window.addEventListener('resize', () => {
+        calculateMaxScroll();
+        scrollTarget = Math.min(scrollTarget, maxScroll);
+    });
 
-    // Wheel event for horizontal scroll
+    // Mouse wheel → horizontal scroll
     window.addEventListener('wheel', (e) => {
         e.preventDefault();
         scrollTarget += e.deltaY * 1.5;
         scrollTarget = Math.max(0, Math.min(scrollTarget, maxScroll));
     }, { passive: false });
 
-    // Touch support
+    // Touch support for mobile
     let touchStartX = 0;
     let touchStartY = 0;
-    let isTouchDragging = false;
 
     window.addEventListener('touchstart', (e) => {
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
-        isTouchDragging = true;
-    });
+    }, { passive: true });
 
     window.addEventListener('touchmove', (e) => {
-        if (!isTouchDragging) return;
-        e.preventDefault();
-        const deltaX = touchStartX - e.touches[0].clientX;
-        const deltaY = touchStartY - e.touches[0].clientY;
-
-        // Only horizontal scroll if horizontal delta is larger
-        if (Math.abs(deltaX) > Math.abs(deltaY)) {
-            scrollTarget += deltaX * 2;
+        const dx = touchStartX - e.touches[0].clientX;
+        const dy = touchStartY - e.touches[0].clientY;
+        if (Math.abs(dx) > Math.abs(dy)) {
+            scrollTarget += dx * 2;
             scrollTarget = Math.max(0, Math.min(scrollTarget, maxScroll));
         }
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
-    }, { passive: false });
-
-    window.addEventListener('touchend', () => {
-        isTouchDragging = false;
-    });
+    }, { passive: true });
 
     // Keyboard navigation
     window.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-            scrollTarget += window.innerWidth;
-            scrollTarget = Math.min(scrollTarget, maxScroll);
+            scrollTarget = Math.min(scrollTarget + window.innerWidth, maxScroll);
         } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-            scrollTarget -= window.innerWidth;
-            scrollTarget = Math.max(scrollTarget, 0);
+            scrollTarget = Math.max(scrollTarget - window.innerWidth, 0);
         }
     });
 
-    // Main scroll animation loop
-    function smoothScroll() {
-        const diff = scrollTarget - scrollCurrent;
-        scrollVelocity = diff * scrollEase;
-        scrollCurrent += scrollVelocity;
-
-        // Apply transform (this is much smoother than scrollLeft)
-        scrollContainer.style.transform = `translateX(${-scrollCurrent}px)`;
-
-        // Update progress bar
-        const progress = (scrollCurrent / maxScroll) * 100;
-        progressFill.style.width = Math.min(progress, 100) + '%';
-
-        // Update panel counter
-        const currentPanelIndex = Math.round(scrollCurrent / window.innerWidth);
-        panelCounterCurrent.textContent = String(
-            Math.min(currentPanelIndex + 1, panels.length)
-        ).padStart(2, '0');
-
-        // Parallax for hero background
-        const heroBg = document.getElementById('hero-bg');
-        if (heroBg) {
-            heroBg.style.transform = `translate(-50%, -50%) translateX(${scrollCurrent * 0.05}px)`;
-        }
-
-        // Trigger reveals
-        checkReveals();
-
-        requestAnimationFrame(smoothScroll);
-    }
-
     // ============================================================
-    // 5. HERO TEXT REVEAL (Char-by-Char)
+    // 6. HERO TEXT CHARACTER REVEAL
     // ============================================================
     const heroTitle = document.getElementById('hero-title');
     const heroSubtitle = document.getElementById('hero-subtitle');
@@ -276,38 +341,29 @@
     splitTextIntoChars(heroTitle);
 
     function initHeroReveal() {
-        // Reveal hero chars
-        const chars = heroTitle.querySelectorAll('.char');
-        chars.forEach((char) => char.classList.add('revealed'));
-
-        // Reveal subtitle
-        setTimeout(() => {
-            heroSubtitle.classList.add('revealed');
-        }, 800);
+        heroTitle.querySelectorAll('.char').forEach((c) => c.classList.add('revealed'));
+        setTimeout(() => heroSubtitle.classList.add('revealed'), 800);
     }
 
     // ============================================================
-    // 6. INTERSECTION REVEAL SYSTEM
+    // 7. SCROLL-BASED REVEAL SYSTEM
     // ============================================================
     const revealElements = document.querySelectorAll(
         '.reveal-up, .reveal-left, .reveal-right, .reveal-scale, .exp-side-stat'
     );
 
     function checkReveals() {
+        const threshold = window.innerWidth * 0.15;
         revealElements.forEach((el) => {
             const rect = el.getBoundingClientRect();
-            const threshold = window.innerWidth * 0.15;
-            if (
-                rect.left < window.innerWidth - threshold &&
-                rect.right > threshold
-            ) {
+            if (rect.left < window.innerWidth - threshold && rect.right > threshold) {
                 el.classList.add('revealed');
             }
         });
     }
 
     // ============================================================
-    // 7. COUNTER ANIMATION
+    // 8. ANIMATED COUNTERS
     // ============================================================
     const counters = document.querySelectorAll('.counter');
     const counteredSet = new Set();
@@ -320,49 +376,22 @@
                 counteredSet.add(counter);
                 const target = parseInt(counter.dataset.target);
                 const duration = 2000;
-                const startTime = performance.now();
-
-                function updateCounter(timestamp) {
-                    const elapsed = timestamp - startTime;
-                    const progress = Math.min(elapsed / duration, 1);
-                    // Ease out quart
-                    const easedProgress = 1 - Math.pow(1 - progress, 4);
-                    counter.textContent = Math.floor(easedProgress * target);
-                    if (progress < 1) {
-                        requestAnimationFrame(updateCounter);
-                    } else {
-                        counter.textContent = target;
-                    }
+                const start = performance.now();
+                function tick(now) {
+                    const elapsed = now - start;
+                    const t = Math.min(elapsed / duration, 1);
+                    const eased = 1 - Math.pow(1 - t, 4); // ease-out quart
+                    counter.textContent = Math.floor(eased * target);
+                    if (t < 1) requestAnimationFrame(tick);
+                    else counter.textContent = target;
                 }
-                requestAnimationFrame(updateCounter);
+                requestAnimationFrame(tick);
             }
         });
     }
 
-    // Hook counter animation into scroll loop
-    const originalCheckReveals = checkReveals;
-    // Override to also check counters
-    const checkRevealsEnhanced = () => {
-        revealElements.forEach((el) => {
-            const rect = el.getBoundingClientRect();
-            const threshold = window.innerWidth * 0.15;
-            if (
-                rect.left < window.innerWidth - threshold &&
-                rect.right > threshold
-            ) {
-                el.classList.add('revealed');
-            }
-        });
-        animateCounters();
-        animateSkillBars();
-    };
-    // Replace
-    window._checkReveals = checkRevealsEnhanced;
-    // Patch the smoothScroll to use enhanced version
-    // We'll call it inside the loop directly
-
     // ============================================================
-    // 8. SKILL BAR ANIMATION
+    // 9. SKILL BAR ANIMATION
     // ============================================================
     const skillBars = document.querySelectorAll('.skill-bar');
     const skillBarSet = new Set();
@@ -373,16 +402,46 @@
             const rect = bar.getBoundingClientRect();
             if (rect.left < window.innerWidth && rect.right > 0) {
                 skillBarSet.add(bar);
-                const targetWidth = bar.dataset.width;
                 setTimeout(() => {
-                    bar.style.width = targetWidth + '%';
+                    bar.style.width = bar.dataset.width + '%';
                 }, 200);
             }
         });
     }
 
     // ============================================================
-    // 9. 3D CARD TILT EFFECT
+    // 10. FUNNEL & METRIC BAR ANIMATIONS
+    // ============================================================
+    const funnelSteps = document.querySelectorAll('.funnel-step');
+    const metricBars = document.querySelectorAll('.m-bar-fill');
+    const funnelSet = new Set();
+    const metricBarSet = new Set();
+
+    function animateFunnelAndMetrics() {
+        funnelSteps.forEach((step) => {
+            if (funnelSet.has(step)) return;
+            const rect = step.getBoundingClientRect();
+            if (rect.left < window.innerWidth && rect.right > 0) {
+                funnelSet.add(step);
+                setTimeout(() => {
+                    step.style.width = step.dataset.width + '%';
+                }, 300);
+            }
+        });
+        metricBars.forEach((bar) => {
+            if (metricBarSet.has(bar)) return;
+            const rect = bar.getBoundingClientRect();
+            if (rect.left < window.innerWidth && rect.right > 0) {
+                metricBarSet.add(bar);
+                setTimeout(() => {
+                    bar.style.width = bar.dataset.width + '%';
+                }, 300);
+            }
+        });
+    }
+
+    // ============================================================
+    // 11. 3D CARD TILT ON HOVER
     // ============================================================
     const tiltCards = document.querySelectorAll('[data-tilt]');
 
@@ -393,20 +452,20 @@
             const y = e.clientY - rect.top;
             const centerX = rect.width / 2;
             const centerY = rect.height / 2;
-
             const rotateX = ((y - centerY) / centerY) * -8;
             const rotateY = ((x - centerX) / centerX) * 8;
-
-            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+            card.style.transform =
+                `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
         });
 
         card.addEventListener('mouseleave', () => {
-            card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
+            card.style.transform =
+                'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
         });
     });
 
     // ============================================================
-    // 10. MAGNETIC BUTTON EFFECT
+    // 12. MAGNETIC BUTTON EFFECT
     // ============================================================
     const magneticBtns = document.querySelectorAll('[data-magnetic]');
 
@@ -415,7 +474,6 @@
             const rect = btn.getBoundingClientRect();
             const x = e.clientX - rect.left - rect.width / 2;
             const y = e.clientY - rect.top - rect.height / 2;
-
             btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
         });
 
@@ -430,7 +488,7 @@
     });
 
     // ============================================================
-    // 11. FULLSCREEN MENU
+    // 13. FULLSCREEN MENU OVERLAY
     // ============================================================
     const menuToggle = document.getElementById('menu-toggle');
     const fullscreenMenu = document.getElementById('fullscreen-menu');
@@ -441,9 +499,7 @@
         menuOpen = !menuOpen;
         menuToggle.classList.toggle('active', menuOpen);
         fullscreenMenu.classList.toggle('active', menuOpen);
-
         if (!menuOpen) {
-            // Reset link states
             menuLinks.forEach((link) => {
                 link.style.opacity = '0';
                 link.style.transform = 'translateY(60px)';
@@ -457,8 +513,6 @@
             const sectionIndex = parseInt(link.dataset.section);
             scrollTarget = sectionIndex * window.innerWidth;
             scrollTarget = Math.max(0, Math.min(scrollTarget, maxScroll));
-
-            // Close menu
             menuOpen = false;
             menuToggle.classList.remove('active');
             fullscreenMenu.classList.remove('active');
@@ -466,13 +520,14 @@
     });
 
     // ============================================================
-    // 12. WORD REVEAL FOR HEADLINES
+    // 14. WORD-BY-WORD REVEAL FOR HEADLINES
     // ============================================================
     function setupWordReveal() {
-        const headlines = document.querySelectorAll('.stats-headline, .contact-headline');
+        const headlines = document.querySelectorAll(
+            '.stats-headline, .contact-headline'
+        );
         headlines.forEach((el) => {
             const text = el.innerHTML;
-            // Split by words but preserve HTML tags like <br>
             const words = text.split(/(\s+|<br\s*\/?>)/);
             el.innerHTML = '';
             words.forEach((word, i) => {
@@ -498,10 +553,8 @@
     }
     setupWordReveal();
 
-    // Reveal word-inner elements
     function checkWordReveals() {
-        const wordInners = document.querySelectorAll('.word-inner');
-        wordInners.forEach((inner) => {
+        document.querySelectorAll('.word-inner').forEach((inner) => {
             const rect = inner.getBoundingClientRect();
             if (rect.left < window.innerWidth * 0.85 && rect.right > 0) {
                 inner.classList.add('revealed');
@@ -510,12 +563,10 @@
     }
 
     // ============================================================
-    // 13. PARALLAX ON MOUSE MOVE
+    // 15. MOUSE PARALLAX EFFECTS
     // ============================================================
-    let parallaxTargetX = 0;
-    let parallaxTargetY = 0;
-    let parallaxCurrentX = 0;
-    let parallaxCurrentY = 0;
+    let parallaxTargetX = 0, parallaxTargetY = 0;
+    let parallaxCurrentX = 0, parallaxCurrentY = 0;
 
     document.addEventListener('mousemove', (e) => {
         parallaxTargetX = (e.clientX / window.innerWidth - 0.5) * 2;
@@ -526,16 +577,9 @@
         parallaxCurrentX += (parallaxTargetX - parallaxCurrentX) * 0.05;
         parallaxCurrentY += (parallaxTargetY - parallaxCurrentY) * 0.05;
 
-        // Move hero radial gradient
-        const heroRadial = document.querySelector('.hero-radial');
-        if (heroRadial) {
-            heroRadial.style.transform = `translate(${parallaxCurrentX * 30}px, ${parallaxCurrentY * 30}px)`;
-        }
-
-        // Subtle movement on dot grids
-        const dotGrids = document.querySelectorAll('.dot-grid');
-        dotGrids.forEach((grid) => {
-            grid.style.transform = `translate(${parallaxCurrentX * -10}px, ${parallaxCurrentY * -10}px)`;
+        document.querySelectorAll('.dot-grid').forEach((grid) => {
+            grid.style.transform =
+                `translate(${parallaxCurrentX * -10}px, ${parallaxCurrentY * -10}px)`;
         });
 
         requestAnimationFrame(updateParallax);
@@ -543,159 +587,230 @@
     updateParallax();
 
     // ============================================================
-    // 14. DYNAMIC PANEL BACKGROUND SHIFT
+    // 16. PANEL VISIBILITY & SCALE EFFECTS
     // ============================================================
     function updatePanelEffects() {
-        panels.forEach((panel, i) => {
+        panels.forEach((panel) => {
             const rect = panel.getBoundingClientRect();
             const visibility = Math.max(
                 0,
                 Math.min(1, 1 - Math.abs(rect.left) / window.innerWidth)
             );
-            // Scale content slightly based on visibility
             const inner = panel.querySelector('.panel-inner');
             if (inner) {
-                const scale = 0.95 + visibility * 0.05;
-                const opacity = 0.3 + visibility * 0.7;
-                inner.style.transform = `scale(${scale})`;
-                inner.style.opacity = opacity;
+                inner.style.transform = `scale(${0.95 + visibility * 0.05})`;
+                inner.style.opacity = 0.3 + visibility * 0.7;
             }
         });
     }
 
     // ============================================================
-    // 15. ENHANCED SMOOTH SCROLL LOOP (Main RAF)
+    // 17. TESTIMONIAL CAROUSEL
     // ============================================================
-    function mainLoop() {
-        const diff = scrollTarget - scrollCurrent;
-        scrollVelocity = diff * scrollEase;
-        scrollCurrent += scrollVelocity;
+    const testimonialCards = document.querySelectorAll('.testimonial-card');
+    const testimonialDots = document.querySelectorAll('.t-dot');
+    let currentTestimonial = 0;
+    let testimonialTimer = null;
 
-        // Clamp to prevent floating point drift
-        if (Math.abs(diff) < 0.1) {
-            scrollCurrent = scrollTarget;
-        }
+    function showTestimonial(index) {
+        testimonialCards.forEach((c) => c.classList.remove('active'));
+        testimonialDots.forEach((d) => d.classList.remove('active'));
+        if (testimonialCards[index]) testimonialCards[index].classList.add('active');
+        if (testimonialDots[index]) testimonialDots[index].classList.add('active');
+        currentTestimonial = index;
+    }
 
-        // Apply transform
-        scrollContainer.style.transform = `translateX(${-scrollCurrent}px)`;
-
-        // Progress bar
-        const progress = maxScroll > 0 ? (scrollCurrent / maxScroll) * 100 : 0;
-        progressFill.style.width = Math.min(progress, 100) + '%';
-
-        // Panel counter
-        const currentPanelIndex = Math.round(scrollCurrent / window.innerWidth);
-        panelCounterCurrent.textContent = String(
-            Math.min(currentPanelIndex + 1, panels.length)
-        ).padStart(2, '0');
-
-        // Parallax hero bg — moves opposite to scroll
-        const heroBg = document.getElementById('hero-bg');
-        if (heroBg) {
-            const parallaxSpeed = 0.15;
-            heroBg.style.transform = `translateX(${-scrollCurrent * parallaxSpeed}px)`;
-            // Fade out background as user scrolls deeper
-            const fadeStart = window.innerWidth * 0.5;
-            const fadeEnd = window.innerWidth * 4;
-            const bgOpacity = Math.max(0, 1 - (scrollCurrent - fadeStart) / (fadeEnd - fadeStart));
-            heroBg.style.opacity = Math.max(0.05, bgOpacity);
-        }
-
-        // Run reveal checks
-        revealElements.forEach((el) => {
-            const rect = el.getBoundingClientRect();
-            const threshold = window.innerWidth * 0.15;
-            if (
-                rect.left < window.innerWidth - threshold &&
-                rect.right > threshold
-            ) {
-                el.classList.add('revealed');
-            }
+    testimonialDots.forEach((dot) => {
+        dot.addEventListener('click', () => {
+            showTestimonial(parseInt(dot.dataset.index));
+            clearInterval(testimonialTimer);
+            startTestimonialAuto();
+            if (soundEnabled) playSound(500, 0.03, 0.1);
         });
+    });
 
-        animateCounters();
-        animateSkillBars();
-        checkWordReveals();
-        updatePanelEffects();
-
-        requestAnimationFrame(mainLoop);
+    function startTestimonialAuto() {
+        testimonialTimer = setInterval(() => {
+            const next = (currentTestimonial + 1) % testimonialCards.length;
+            showTestimonial(next);
+        }, 5000);
     }
+    startTestimonialAuto();
 
     // ============================================================
-    // 16. SCROLL SNAP (Optional — snap to nearest panel on rest)
+    // 18. DARK / LIGHT THEME TOGGLE
     // ============================================================
-    let snapTimeout = null;
+    const themeToggle = document.getElementById('theme-toggle');
+    let isDark = true;
 
-    function scheduleSnap() {
-        clearTimeout(snapTimeout);
-        snapTimeout = setTimeout(() => {
-            const nearestPanel = Math.round(scrollTarget / window.innerWidth);
-            const snapTarget = nearestPanel * window.innerWidth;
-            // Only snap if close enough
-            if (Math.abs(scrollTarget - snapTarget) < window.innerWidth * 0.25) {
-                scrollTarget = Math.max(0, Math.min(snapTarget, maxScroll));
-            }
-        }, 150);
-    }
+    if (themeToggle) {
+        const iconSun = themeToggle.querySelector('.icon-sun');
+        const iconMoon = themeToggle.querySelector('.icon-moon');
 
-    window.addEventListener('wheel', scheduleSnap);
-    window.addEventListener('touchend', scheduleSnap);
+        themeToggle.addEventListener('click', () => {
+            isDark = !isDark;
+            document.body.classList.add('transitioning');
+            document.body.classList.toggle('light', !isDark);
 
-    // ============================================================
-    // 17. DYNAMIC GRADIENT ORBS (BACKGROUND)
-    // ============================================================
-    function createGradientOrbs() {
-        const orbContainer = document.createElement('div');
-        orbContainer.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-            overflow: hidden;
-        `;
-        document.body.prepend(orbContainer);
+            if (iconSun) iconSun.style.display = isDark ? 'block' : 'none';
+            if (iconMoon) iconMoon.style.display = isDark ? 'none' : 'block';
 
-        const orbColors = [
-            'rgba(255, 61, 0, 0.06)',
-            'rgba(255, 100, 50, 0.04)',
-            'rgba(200, 30, 0, 0.05)',
-        ];
-
-        orbColors.forEach((color, i) => {
-            const orb = document.createElement('div');
-            const size = 400 + i * 200;
-            orb.style.cssText = `
-                position: absolute;
-                width: ${size}px;
-                height: ${size}px;
-                border-radius: 50%;
-                background: radial-gradient(circle, ${color}, transparent 70%);
-                filter: blur(60px);
-                animation: orbFloat${i} ${15 + i * 5}s ease-in-out infinite alternate;
-            `;
-            // Add keyframes dynamically
-            const keyframes = `
-                @keyframes orbFloat${i} {
-                    0% { transform: translate(${20 + i * 30}vw, ${10 + i * 20}vh); }
-                    33% { transform: translate(${50 - i * 15}vw, ${60 + i * 10}vh); }
-                    66% { transform: translate(${70 + i * 10}vw, ${20 - i * 5}vh); }
-                    100% { transform: translate(${30 + i * 20}vw, ${50 + i * 15}vh); }
+            // Adjust Three.js particle colors for the theme
+            if (particleSystem) {
+                const colors = particleSystem.geometry.attributes.color.array;
+                for (let i = 0; i < colors.length; i += 3) {
+                    if (!isDark) {
+                        colors[i] *= 0.4;
+                        colors[i + 1] *= 0.4;
+                    } else {
+                        const intensity = 0.3 + Math.random() * 0.7;
+                        colors[i] = intensity;
+                        colors[i + 1] = intensity * 0.24;
+                    }
                 }
-            `;
-            const style = document.createElement('style');
-            style.textContent = keyframes;
-            document.head.appendChild(style);
+                particleSystem.geometry.attributes.color.needsUpdate = true;
+            }
 
-            orbContainer.appendChild(orb);
+            if (soundEnabled) playSound(isDark ? 300 : 600, 0.04, 0.15);
+            setTimeout(() => document.body.classList.remove('transitioning'), 800);
         });
     }
-    createGradientOrbs();
 
     // ============================================================
-    // 18. TEXT SCRAMBLE EFFECT (for role titles on hover)
+    // 19. SOUND DESIGN (Web Audio API)
+    // ============================================================
+    let soundEnabled = false;
+    let audioCtx = null;
+    const soundToggle = document.getElementById('sound-toggle');
+
+    if (soundToggle) {
+        const iconSoundOn = soundToggle.querySelector('.icon-sound-on');
+        const iconSoundOff = soundToggle.querySelector('.icon-sound-off');
+
+        soundToggle.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            if (iconSoundOn) iconSoundOn.style.display = soundEnabled ? 'block' : 'none';
+            if (iconSoundOff) iconSoundOff.style.display = soundEnabled ? 'none' : 'block';
+
+            // Initialize AudioContext on first enable (Chrome policy)
+            if (soundEnabled && !audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (soundEnabled) playSound(600, 0.05, 0.15);
+        });
+    }
+
+    function playSound(freq, vol, duration) {
+        if (!soundEnabled || !audioCtx) return;
+        try {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = freq;
+            osc.type = 'sine';
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(
+                0.001,
+                audioCtx.currentTime + duration
+            );
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        } catch (e) {
+            // Silently fail if audio context is suspended
+        }
+    }
+
+    // Hover sounds on interactive elements
+    document.querySelectorAll(
+        'a, button, .exp-card, .edu-card, .blog-card, .case-metric-card'
+    ).forEach((el) => {
+        el.addEventListener('mouseenter', () => {
+            playSound(800 + Math.random() * 400, 0.02, 0.06);
+        });
+    });
+
+    // Sound on panel change
+    let lastSoundPanel = -1;
+    function checkScrollSound() {
+        const currentPanel = Math.round(scrollCurrent / window.innerWidth);
+        if (currentPanel !== lastSoundPanel) {
+            lastSoundPanel = currentPanel;
+            playSound(300 + currentPanel * 40, 0.03, 0.2);
+        }
+    }
+
+    // ============================================================
+    // 20. PDF DOWNLOAD (Print to PDF)
+    // ============================================================
+    const pdfBtn = document.getElementById('pdf-download');
+    if (pdfBtn) {
+        pdfBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (soundEnabled) playSound(500, 0.04, 0.12);
+            window.print();
+        });
+    }
+
+    // ============================================================
+    // 21. CALENDLY / BOOKING MODAL
+    // ============================================================
+    const calendlyBtn = document.getElementById('calendly-btn');
+    const calendlyModal = document.getElementById('calendly-modal');
+    const modalClose = document.getElementById('modal-close');
+
+    if (calendlyBtn && calendlyModal) {
+        calendlyBtn.addEventListener('click', () => {
+            calendlyModal.classList.add('active');
+            if (soundEnabled) playSound(450, 0.04, 0.1);
+        });
+    }
+
+    if (modalClose && calendlyModal) {
+        modalClose.addEventListener('click', () => {
+            calendlyModal.classList.remove('active');
+        });
+        calendlyModal.addEventListener('click', (e) => {
+            if (e.target === calendlyModal) {
+                calendlyModal.classList.remove('active');
+            }
+        });
+    }
+
+    // ============================================================
+    // 22. KONAMI CODE EASTER EGG (↑↑↓↓←→←→BA)
+    // ============================================================
+    const konamiSequence = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65];
+    let konamiIndex = 0;
+    const easterEgg = document.getElementById('easter-egg');
+    const eeCloseBtn = document.getElementById('ee-close');
+
+    document.addEventListener('keydown', (e) => {
+        if (e.keyCode === konamiSequence[konamiIndex]) {
+            konamiIndex++;
+            if (konamiIndex === konamiSequence.length) {
+                // Easter egg activated!
+                if (easterEgg) easterEgg.classList.add('active');
+                if (soundEnabled) {
+                    playSound(523, 0.08, 0.15);
+                    setTimeout(() => playSound(659, 0.08, 0.15), 150);
+                    setTimeout(() => playSound(784, 0.08, 0.3), 300);
+                }
+                konamiIndex = 0;
+            }
+        } else {
+            konamiIndex = 0;
+        }
+    });
+
+    if (eeCloseBtn && easterEgg) {
+        eeCloseBtn.addEventListener('click', () => {
+            easterEgg.classList.remove('active');
+        });
+    }
+
+    // ============================================================
+    // 23. TEXT SCRAMBLE EFFECT ON HOVER
     // ============================================================
     class TextScramble {
         constructor(el) {
@@ -730,16 +845,17 @@
 
             for (let i = 0, n = this.queue.length; i < n; i++) {
                 let { from, to, start, end, char } = this.queue[i];
-
                 if (this.frame >= end) {
                     complete++;
                     output += to;
                 } else if (this.frame >= start) {
                     if (!char || Math.random() < 0.28) {
-                        char = this.chars[Math.floor(Math.random() * this.chars.length)];
+                        char = this.chars[
+                            Math.floor(Math.random() * this.chars.length)
+                        ];
                         this.queue[i].char = char;
                     }
-                    output += `<span style="color: var(--accent); opacity: 0.6;">${char}</span>`;
+                    output += `<span style="color:var(--accent);opacity:0.6;">${char}</span>`;
                 } else {
                     output += from;
                 }
@@ -755,24 +871,27 @@
         }
     }
 
-    // Apply scramble to exp-role elements on hover
     function setupTextScramble() {
-        const roles = document.querySelectorAll('.exp-role');
-        roles.forEach((role) => {
+        document.querySelectorAll('.exp-role').forEach((role) => {
             const originalText = role.textContent;
             const scrambler = new TextScramble(role);
-
-            role.parentElement.parentElement.parentElement.addEventListener('mouseenter', () => {
-                scrambler.setText(originalText);
-            });
+            const card = role.closest('.exp-card');
+            if (card) {
+                card.addEventListener('mouseenter', () => {
+                    scrambler.setText(originalText);
+                });
+            }
         });
     }
 
     // ============================================================
-    // 19. HOVER RIPPLE EFFECT ON CARDS
+    // 24. RIPPLE CLICK EFFECT ON CARDS
     // ============================================================
     function setupRippleEffect() {
-        const cards = document.querySelectorAll('.exp-card, .edu-card');
+        const cards = document.querySelectorAll(
+            '.exp-card, .edu-card, .blog-card'
+        );
+
         cards.forEach((card) => {
             card.addEventListener('click', (e) => {
                 const ripple = document.createElement('div');
@@ -799,63 +918,83 @@
                 card.style.overflow = 'hidden';
                 card.appendChild(ripple);
 
+                if (soundEnabled) playSound(200 + Math.random() * 300, 0.03, 0.12);
                 setTimeout(() => ripple.remove(), 800);
             });
         });
 
-        // Add ripple keyframe
-        const rippleStyle = document.createElement('style');
-        rippleStyle.textContent = `
+        // Inject ripple keyframe
+        const style = document.createElement('style');
+        style.textContent = `
             @keyframes rippleExpand {
                 0% { transform: scale(0); opacity: 1; }
                 100% { transform: scale(1); opacity: 0; }
             }
         `;
-        document.head.appendChild(rippleStyle);
+        document.head.appendChild(style);
     }
 
     // ============================================================
-    // 20. TYPEWRITER EFFECT FOR SUBTITLE
+    // 25. DYNAMIC GRADIENT ORBS (AMBIENT BACKGROUND)
     // ============================================================
-    function typewriterEffect(element, text, speed = 30) {
-        element.textContent = '';
-        let i = 0;
-        function type() {
-            if (i < text.length) {
-                element.textContent += text.charAt(i);
-                i++;
-                setTimeout(type, speed);
-            }
-        }
-        type();
+    function createGradientOrbs() {
+        const container = document.createElement('div');
+        container.style.cssText =
+            'position:fixed;top:0;left:0;width:100%;height:100%;' +
+            'pointer-events:none;z-index:-1;overflow:hidden;';
+        document.body.prepend(container);
+
+        const orbConfigs = [
+            { color: 'rgba(255, 61, 0, 0.06)', size: 400 },
+            { color: 'rgba(255, 100, 50, 0.04)', size: 600 },
+            { color: 'rgba(200, 30, 0, 0.05)', size: 800 },
+        ];
+
+        orbConfigs.forEach((config, i) => {
+            const orb = document.createElement('div');
+            orb.style.cssText = `
+                position: absolute;
+                width: ${config.size}px;
+                height: ${config.size}px;
+                border-radius: 50%;
+                background: radial-gradient(circle, ${config.color}, transparent 70%);
+                filter: blur(60px);
+                animation: orbFloat${i} ${15 + i * 5}s ease-in-out infinite alternate;
+            `;
+
+            const keyframes = `
+                @keyframes orbFloat${i} {
+                    0% { transform: translate(${20 + i * 30}vw, ${10 + i * 20}vh); }
+                    33% { transform: translate(${50 - i * 15}vw, ${60 + i * 10}vh); }
+                    66% { transform: translate(${70 + i * 10}vw, ${20 - i * 5}vh); }
+                    100% { transform: translate(${30 + i * 20}vw, ${50 + i * 15}vh); }
+                }
+            `;
+            const styleEl = document.createElement('style');
+            styleEl.textContent = keyframes;
+            document.head.appendChild(styleEl);
+            container.appendChild(orb);
+        });
     }
+    createGradientOrbs();
 
     // ============================================================
-    // 21. PARTICLE SYSTEM (Floating dots)
+    // 26. FLOATING PARTICLES
     // ============================================================
-    function createParticles() {
-        const particleContainer = document.createElement('div');
-        particleContainer.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-            overflow: hidden;
-        `;
-        document.body.prepend(particleContainer);
+    function createFloatingParticles() {
+        const container = document.createElement('div');
+        container.style.cssText =
+            'position:fixed;top:0;left:0;width:100%;height:100%;' +
+            'pointer-events:none;z-index:-1;overflow:hidden;';
+        document.body.prepend(container);
 
-        const particleCount = 30;
-
-        for (let i = 0; i < particleCount; i++) {
+        for (let i = 0; i < 25; i++) {
             const particle = document.createElement('div');
             const size = Math.random() * 3 + 1;
-            const startX = Math.random() * 100;
-            const startY = Math.random() * 100;
             const duration = 20 + Math.random() * 30;
             const delay = Math.random() * -30;
+            const startX = Math.random() * 100;
+            const startY = Math.random() * 100;
 
             particle.style.cssText = `
                 position: absolute;
@@ -865,64 +1004,73 @@
                 border-radius: 50%;
                 left: ${startX}%;
                 top: ${startY}%;
-                animation: particleDrift${i} ${duration}s ${delay}s linear infinite;
+                animation: pDrift${i} ${duration}s ${delay}s linear infinite;
             `;
 
+            const driftX = (Math.random() - 0.5) * 400;
+            const driftY = (Math.random() - 0.5) * 400;
+            const peakOpacity = 0.2 + Math.random() * 0.3;
             const keyframes = `
-                @keyframes particleDrift${i} {
-                    0% {
-                        transform: translate(0, 0) scale(1);
-                        opacity: 0;
-                    }
-                    10% { opacity: ${0.2 + Math.random() * 0.3}; }
-                    50% {
-                        transform: translate(${(Math.random() - 0.5) * 200}px, ${(Math.random() - 0.5) * 200}px) scale(${0.5 + Math.random()});
-                    }
-                    90% { opacity: ${0.1 + Math.random() * 0.2}; }
-                    100% {
-                        transform: translate(${(Math.random() - 0.5) * 400}px, ${(Math.random() - 0.5) * 400}px) scale(0.5);
-                        opacity: 0;
-                    }
+                @keyframes pDrift${i} {
+                    0% { transform: translate(0, 0) scale(1); opacity: 0; }
+                    10% { opacity: ${peakOpacity}; }
+                    50% { transform: translate(${driftX / 2}px, ${driftY / 2}px) scale(${0.5 + Math.random()}); }
+                    90% { opacity: 0.1; }
+                    100% { transform: translate(${driftX}px, ${driftY}px) scale(0.5); opacity: 0; }
                 }
             `;
-            const style = document.createElement('style');
-            style.textContent = keyframes;
-            document.head.appendChild(style);
-
-            particleContainer.appendChild(particle);
+            const styleEl = document.createElement('style');
+            styleEl.textContent = keyframes;
+            document.head.appendChild(styleEl);
+            container.appendChild(particle);
         }
     }
-    createParticles();
+    createFloatingParticles();
 
     // ============================================================
-    // 22. GLITCH EFFECT ON LOGO
+    // 27. LOGO GLITCH EFFECT
     // ============================================================
     const siteLogo = document.querySelector('.site-logo');
 
-    function logoGlitch() {
-        siteLogo.style.animation = 'glitch 0.3s ease';
-        setTimeout(() => {
-            siteLogo.style.animation = '';
-        }, 300);
-    }
-
-    // Random glitch every 8-15 seconds
     function scheduleGlitch() {
         const delay = 8000 + Math.random() * 7000;
         setTimeout(() => {
-            logoGlitch();
+            if (siteLogo) {
+                siteLogo.style.animation = 'glitch 0.3s ease';
+                setTimeout(() => {
+                    siteLogo.style.animation = '';
+                }, 300);
+            }
             scheduleGlitch();
         }, delay);
     }
     scheduleGlitch();
 
     // ============================================================
-    // 23. COLOR SHIFT ON SCROLL
+    // 28. SCROLL SNAP (Gentle snap to nearest panel)
+    // ============================================================
+    let snapTimeout = null;
+
+    function scheduleSnap() {
+        clearTimeout(snapTimeout);
+        snapTimeout = setTimeout(() => {
+            const nearestPanel = Math.round(scrollTarget / window.innerWidth);
+            const snapTarget = nearestPanel * window.innerWidth;
+            if (Math.abs(scrollTarget - snapTarget) < window.innerWidth * 0.25) {
+                scrollTarget = Math.max(0, Math.min(snapTarget, maxScroll));
+            }
+        }, 150);
+    }
+
+    window.addEventListener('wheel', scheduleSnap);
+    window.addEventListener('touchend', scheduleSnap);
+
+    // ============================================================
+    // 29. ACCENT HUE SHIFT ON SCROLL
     // ============================================================
     function updateAccentShift() {
         const progress = maxScroll > 0 ? scrollCurrent / maxScroll : 0;
-        // Subtle hue shift on the accent glow
-        const hue = Math.floor(progress * 15); // 0-15 degree shift
+        const hue = Math.floor(progress * 15);
         document.documentElement.style.setProperty(
             '--accent-glow',
             `hsla(${14 + hue}, 100%, 50%, 0.15)`
@@ -930,24 +1078,24 @@
     }
 
     // ============================================================
-    // 24. SCROLL VELOCITY BASED TEXT SKEW
+    // 30. VELOCITY-BASED TEXT SKEW
     // ============================================================
     function updateTextSkew() {
-        const skew = scrollVelocity * 0.01;
-        const clampedSkew = Math.max(-3, Math.min(3, skew));
+        const skew = scrollVelocity * 0.008;
+        const clamped = Math.max(-3, Math.min(3, skew));
         panels.forEach((panel) => {
             const inner = panel.querySelector('.panel-inner');
             if (inner) {
                 inner.style.transition = 'none';
-                inner.style.transform = `skewX(${clampedSkew}deg)`;
+                inner.style.transform = `skewX(${clamped}deg)`;
             }
         });
     }
 
     // ============================================================
-    // 25. FINAL ENHANCED MAIN LOOP
+    // 31. MAIN ANIMATION LOOP
     // ============================================================
-    function enhancedMainLoop() {
+    function mainLoop() {
         const diff = scrollTarget - scrollCurrent;
         scrollVelocity = diff * scrollEase;
         scrollCurrent += scrollVelocity;
@@ -956,7 +1104,7 @@
             scrollCurrent = scrollTarget;
         }
 
-        // Apply smooth transform
+        // Apply scroll transform
         scrollContainer.style.transform = `translateX(${-scrollCurrent}px)`;
 
         // Progress bar
@@ -969,39 +1117,22 @@
             Math.min(currentPanelIndex + 1, panels.length)
         ).padStart(2, '0');
 
-        // Hero parallax — moves opposite to scroll with fade
-        const heroBg = document.getElementById('hero-bg');
-        if (heroBg) {
-            const parallaxSpeed = 0.15;
-            heroBg.style.transform = `translateX(${-scrollCurrent * parallaxSpeed}px)`;
-            // Fade out as user scrolls deeper into the site
-            const fadeStart = window.innerWidth * 0.5;
-            const fadeEnd = window.innerWidth * 4;
-            const bgOpacity = Math.max(0, 1 - (scrollCurrent - fadeStart) / (fadeEnd - fadeStart));
-            heroBg.style.opacity = Math.max(0.05, bgOpacity);
-        }
-
-        // Reveal system
-        revealElements.forEach((el) => {
-            const rect = el.getBoundingClientRect();
-            const threshold = window.innerWidth * 0.12;
-            if (rect.left < window.innerWidth - threshold && rect.right > threshold) {
-                el.classList.add('revealed');
-            }
-        });
-
+        // Run all animation subsystems
+        checkReveals();
         animateCounters();
         animateSkillBars();
+        animateFunnelAndMetrics();
         checkWordReveals();
         updatePanelEffects();
         updateAccentShift();
         updateTextSkew();
+        checkScrollSound();
 
-        requestAnimationFrame(enhancedMainLoop);
+        requestAnimationFrame(mainLoop);
     }
 
     // ============================================================
-    // 26. INITIALIZATION
+    // 32. INITIALIZATION
     // ============================================================
     function init() {
         setupCursorHover();
@@ -1009,51 +1140,25 @@
         setupRippleEffect();
 
         // Start the main animation loop
-        enhancedMainLoop();
+        mainLoop();
 
+        // Console branding
         console.log(
-            '%c AL MASUM GAZI — Portfolio Engine v3.0 ',
-            'background: #FF3D00; color: #fff; padding: 6px 12px; font-family: monospace; font-size: 12px;'
+            '%c AL MASUM GAZI — Portfolio Engine v4.0 ',
+            'background: #FF3D00; color: #fff; padding: 6px 12px; ' +
+            'font-family: monospace; font-size: 12px;'
+        );
+        console.log(
+            '%c Try the Konami Code: ↑↑↓↓←→←→BA ',
+            'color: #ff5722; font-family: monospace;'
         );
     }
 
-    // Wait for fonts to load
+    // Wait for fonts before initializing
     if (document.fonts) {
         document.fonts.ready.then(init);
     } else {
         window.addEventListener('load', init);
     }
-
-    // ============================================================
-    // 27. RESIZE HANDLER
-    // ============================================================
-    let resizeTimeout;
-    window.addEventListener('resize', () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-            calculateMaxScroll();
-            // Recalculate scroll position
-            scrollTarget = Math.min(scrollTarget, maxScroll);
-        }, 200);
-    });
-
-    // ============================================================
-    // 28. PERFORMANCE MONITORING (dev only)
-    // ============================================================
-    let fpsFrames = 0;
-    let fpsTime = performance.now();
-
-    function monitorFPS() {
-        fpsFrames++;
-        const now = performance.now();
-        if (now - fpsTime >= 1000) {
-            // Uncomment to debug FPS:
-            // console.log('FPS:', fpsFrames);
-            fpsFrames = 0;
-            fpsTime = now;
-        }
-        requestAnimationFrame(monitorFPS);
-    }
-    monitorFPS();
 
 })();

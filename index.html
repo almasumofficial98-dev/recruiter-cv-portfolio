@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Al Masum Gazi — Creative Recruiter</title>
+    <meta name="description" content="IT Recruitment Specialist with 4 years of expertise in niche hiring, ATS mastery, and technical talent acquisition.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div class="loader" id="loader">
+        <div class="loader-text" id="loader-text">AL MASUM GAZI</div>
+        <div class="loader-progress">
+            <div class="loader-progress-bar" id="loader-bar"></div>
+        </div>
+        <div class="loader-counter" id="loader-counter">0</div>
+    </div>
+
+    <!-- Noise Canvas -->
+    <canvas id="noise-canvas"></canvas>
+
+    <!-- Custom Cursor -->
+    <div class="cursor" id="cursor"></div>
+    <div class="cursor-trail" id="trail-1"></div>
+    <div class="cursor-trail" id="trail-2"></div>
+    <div class="cursor-trail" id="trail-3"></div>
+
+    <!-- Header -->
+    <header class="site-header">
+        <a href="#" class="site-logo">AM GAZI</a>
+        <nav class="site-nav">
+            <span class="nav-location">HYDERABAD / INDIA</span>
+            <span class="nav-status">
+                <span class="status-dot"></span>
+                AVAILABLE NOW
+            </span>
+            <button class="menu-btn" id="menu-toggle" aria-label="Toggle Menu">
+                <span></span>
+                <span></span>
+            </button>
+        </nav>
+    </header>
+
+    <!-- Fullscreen Menu -->
+    <div class="fullscreen-menu" id="fullscreen-menu">
+        <div class="menu-links">
+            <a href="#hero" class="menu-link" data-section="0">Home</a>
+            <a href="#about" class="menu-link" data-section="1">About</a>
+            <a href="#experience" class="menu-link" data-section="2">Experience</a>
+            <a href="#skills" class="menu-link" data-section="6">Skills</a>
+            <a href="#contact" class="menu-link" data-section="8">Contact</a>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    <div class="panel-counter" id="panel-counter">
+        <span class="current">01</span> / <span id="total-panels">09</span>
+    </div>
+
+    <!-- Parallax Background (outside scroll container so transforms work) -->
+    <div class="hero-bg" id="hero-bg">
+        <div class="hero-bg-image"></div>
+        <div class="hero-gradient"></div>
+        <div class="hero-radial"></div>
+    </div>
+
+    <!-- Scroll Container -->
+    <div class="scroll-container" id="scroll-container">
+
+        <!-- ============================
+             PANEL 1: HERO
+             ============================ -->
+        <section class="panel hero-panel" id="hero">
+            <div class="panel-inner hero-title-wrap">
+                <h1 class="hero-title" id="hero-title">
+                    <span class="line">RECRUITER</span>
+                    <span class="line hero-line-accent">ELITE</span>
+                </h1>
+                <p class="hero-subtitle" id="hero-subtitle">
+                    Al Masum Gazi — Specialist in end-to-end IT hiring & niche talent acquisition with 4+ years of impact.
+                </p>
+                <div class="glow-divider" style="margin-top: 40px;"></div>
+            </div>
+            <div class="hero-scroll-indicator">
+                <span class="scroll-line"></span>
+                SCROLL TO EXPLORE
+            </div>
+        </section>
+
+        <!-- ============================
+             PANEL 2: STATS / INTRO
+             ============================ -->
+        <section class="panel stats-panel" id="about">
+            <div class="dot-grid"></div>
+            <div class="panel-inner">
+                <p class="stats-headline reveal-up" id="stats-headline">
+                    I bridge the gap between visionary companies and the exceptional talent they need to thrive.
+                </p>
+                <div class="stats-grid">
+                    <div class="stat-item reveal-up stagger-1">
+                        <p class="stat-label">YEARS ACTIVE</p>
+                        <p class="stat-value"><span class="counter" data-target="4">0</span><span class="stat-suffix">+</span></p>
+                        <p class="stat-desc">Full-time & contract recruitment</p>
+                    </div>
+                    <div class="stat-item reveal-up stagger-2">
+                        <p class="stat-label">INTERVIEWS</p>
+                        <p class="stat-value"><span class="counter" data-target="300">0</span><span class="stat-suffix">+</span></p>
+                        <p class="stat-desc">Technical & HR screenings</p>
+                    </div>
+                    <div class="stat-item reveal-up stagger-3">
+                        <p class="stat-label">COST SAVED</p>
+                        <p class="stat-value"><span class="counter" data-target="20">0</span><span class="stat-suffix">%</span></p>
+                        <p class="stat-desc">Hiring cost reduction achieved</p>
+                    </div>
+                    <div class="stat-item reveal-up stagger-4">
+                        <p class="stat-label">TEAM SIZE</p>
+                        <p class="stat-value"><span class="counter" data-target="10">0</span><span class="stat-suffix">+</span></p>
+                        <p class="stat-desc">Members managed</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================
+             PANEL 3: EXP — Quess Corp
+             ============================ -->
+        <section class="panel exp-panel" id="experience">
+            <div class="marquee-wrap">
+                <div class="marquee">
+                    <span class="marquee-text">PRINCIPAL CONSULTANT</span>
+                    <span class="marquee-text">PRINCIPAL CONSULTANT</span>
+                    <span class="marquee-text">PRINCIPAL CONSULTANT</span>
+                </div>
+            </div>
+            <span class="exp-panel-label">CAREER / 01</span>
+            <span class="exp-panel-number">01</span>
+            <div class="panel-inner">
+                <div class="exp-card reveal-scale" data-tilt>
+                    <div class="exp-card-header">
+                        <div>
+                            <h3 class="exp-role">Principal<br>Consultant</h3>
+                            <p class="exp-company">Quess Corp Limited</p>
+                        </div>
+                        <div class="exp-meta">
+                            <p class="exp-date">APR 2025 — PRESENT</p>
+                            <p class="exp-location">Hyderabad (On-site)</p>
+                        </div>
+                    </div>
+                    <p class="exp-desc">
+                        Driving high-impact acquisition of niche and super-niche IT & non-IT talent for global enterprise clients.
+                        Building robust talent pipelines and managing the complete recruitment lifecycle.
+                    </p>
+                    <div class="exp-achievements">
+                        <div class="exp-achievement">Sourced niche and super-niche IT & non-IT talent for global clients</div>
+                        <div class="exp-achievement">Built and maintained robust pipelines for hard-to-fill roles</div>
+                        <div class="exp-achievement">Managed interview coordination, feedback loops, and ATS portals</div>
+                    </div>
+                    <div class="exp-skills">
+                        <span class="exp-skill-tag">Naukri</span>
+                        <span class="exp-skill-tag">LinkedIn</span>
+                        <span class="exp-skill-tag">Foundit</span>
+                        <span class="exp-skill-tag">Hirist</span>
+                        <span class="exp-skill-tag">Quess ATS</span>
+                        <span class="exp-skill-tag">Advanced Excel</span>
+                        <span class="exp-skill-tag">Stakeholder Comm</span>
+                    </div>
+                </div>
+                <div class="exp-side-info">
+                    <div class="exp-side-stat reveal-right stagger-1">
+                        <p class="exp-side-label">STATUS</p>
+                        <p class="exp-side-value gradient-text">Current Role</p>
+                    </div>
+                    <div class="exp-side-stat reveal-right stagger-2">
+                        <p class="exp-side-label">MODEL</p>
+                        <p class="exp-side-value">On-site</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================
+             PANEL 4: EXP — Tiger Analytics
+             ============================ -->
+        <section class="panel exp-panel">
+            <div class="marquee-wrap">
+                <div class="marquee" style="animation-direction: reverse;">
+                    <span class="marquee-text">SENIOR RECRUITER</span>
+                    <span class="marquee-text">SENIOR RECRUITER</span>
+                    <span class="marquee-text">SENIOR RECRUITER</span>
+                </div>
+            </div>
+            <span class="exp-panel-label">CAREER / 02</span>
+            <span class="exp-panel-number">02</span>
+            <div class="panel-inner">
+                <div class="exp-card reveal-scale" data-tilt>
+                    <div class="exp-card-header">
+                        <div>
+                            <h3 class="exp-role">Senior<br>Recruiter</h3>
+                            <p class="exp-company">Tiger Analytics</p>
+                        </div>
+                        <div class="exp-meta">
+                            <p class="exp-date">OCT 2024 — APR 2025</p>
+                            <p class="exp-location">Hyderabad (Hybrid)</p>
+                        </div>
+                    </div>
+                    <p class="exp-desc">
+                        Managed end-to-end recruitment for niche technical roles in data science and analytics.
+                        Developed advanced sourcing strategies and ensured pipeline integrity through Sense ATS.
+                    </p>
+                    <div class="exp-achievements">
+                        <div class="exp-achievement">Worked on niche roles and specialized data science skill sets</div>
+                        <div class="exp-achievement">Developed sourcing strategies for mid-senior technical positions</div>
+                        <div class="exp-achievement">Conducted technical/HR screenings and coordinated with hiring managers</div>
+                        <div class="exp-achievement">Ensured thorough documentation and pipeline management in Sense ATS</div>
+                    </div>
+                    <div class="exp-skills">
+                        <span class="exp-skill-tag">Sense ATS</span>
+                        <span class="exp-skill-tag">Naukri</span>
+                        <span class="exp-skill-tag">LinkedIn</span>
+                        <span class="exp-skill-tag">Documentation</span>
+                        <span class="exp-skill-tag">Stakeholder Mgmt</span>
+                        <span class="exp-skill-tag">Advanced Excel</span>
+                    </div>
+                </div>
+                <div class="exp-side-info">
+                    <div class="exp-side-stat reveal-right stagger-1">
+                        <p class="exp-side-label">DURATION</p>
+                        <p class="exp-side-value">6 Months</p>
+                    </div>
+                    <div class="exp-side-stat reveal-right stagger-2">
+                        <p class="exp-side-label">TYPE</p>
+                        <p class="exp-side-value">Contract</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================
+             PANEL 5: EXP — JanBask
+             ============================ -->
+        <section class="panel exp-panel">
+            <div class="marquee-wrap">
+                <div class="marquee">
+                    <span class="marquee-text">LEAD RECRUITER & PANELLIST</span>
+                    <span class="marquee-text">LEAD RECRUITER & PANELLIST</span>
+                    <span class="marquee-text">LEAD RECRUITER & PANELLIST</span>
+                </div>
+            </div>
+            <span class="exp-panel-label">CAREER / 03</span>
+            <span class="exp-panel-number">03</span>
+            <div class="panel-inner">
+                <div class="exp-card reveal-scale" data-tilt>
+                    <div class="exp-card-header">
+                        <div>
+                            <h3 class="exp-role">IT Recruiter<br>& Panellist</h3>
+                            <p class="exp-company">JanBask — IT Services</p>
+                        </div>
+                        <div class="exp-meta">
+                            <p class="exp-date">FEB 2023 — SEPT 2024</p>
+                            <p class="exp-location">Remote — Delhi NCR</p>
+                        </div>
+                    </div>
+                    <p class="exp-desc">
+                        Led a specialized 5-member recruitment team. Conducted 300+ interviews, optimized offer negotiation,
+                        and built custom hiring dashboards  resulting in a 20% hiring cost reduction.
+                    </p>
+                    <div class="exp-achievements">
+                        <div class="exp-achievement">Led a 5-member team focused on high-volume technical hiring</div>
+                        <div class="exp-achievement">Conducted 300+ technical and HR interviews</div>
+                        <div class="exp-achievement">Negotiated 50+ offers, contributing to 20% hiring cost reduction</div>
+                        <div class="exp-achievement">Created Excel and Figma dashboards for hiring visibility</div>
+                    </div>
+                    <div class="exp-skills">
+                        <span class="exp-skill-tag">Team Leadership</span>
+                        <span class="exp-skill-tag">Offer Negotiation</span>
+                        <span class="exp-skill-tag">Figma</span>
+                        <span class="exp-skill-tag">Google Sheets</span>
+                        <span class="exp-skill-tag">Analytics</span>
+                        <span class="exp-skill-tag">Interviewing</span>
+                    </div>
+                </div>
+                <div class="exp-side-info">
+                    <div class="exp-side-stat reveal-right stagger-1">
+                        <p class="exp-side-label">INTERVIEWS</p>
+                        <p class="exp-side-value gradient-text">300+</p>
+                    </div>
+                    <div class="exp-side-stat reveal-right stagger-2">
+                        <p class="exp-side-label">TEAM</p>
+                        <p class="exp-side-value">5 Members</p>
+                    </div>
+                    <div class="exp-side-stat reveal-right stagger-3">
+                        <p class="exp-side-label">IMPACT</p>
+                        <p class="exp-side-value">20% Saved</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================
+             PANEL 6: EXP — HiyaMee
+             ============================ -->
+        <section class="panel exp-panel">
+            <div class="marquee-wrap">
+                <div class="marquee" style="animation-direction: reverse;">
+                    <span class="marquee-text">LEAD QA & RECRUITER</span>
+                    <span class="marquee-text">LEAD QA & RECRUITER</span>
+                    <span class="marquee-text">LEAD QA & RECRUITER</span>
+                </div>
+            </div>
+            <span class="exp-panel-label">CAREER / 04</span>
+            <span class="exp-panel-number">04</span>
+            <div class="panel-inner">
+                <div class="exp-card reveal-scale" data-tilt>
+                    <div class="exp-card-header">
+                        <div>
+                            <h3 class="exp-role">Lead QA &<br>IT Recruiter</h3>
+                            <p class="exp-company">HiyaMee</p>
+                        </div>
+                        <div class="exp-meta">
+                            <p class="exp-date">AUG 2021 — AUG 2022</p>
+                            <p class="exp-location">Delhi NCR (On-site)</p>
+                        </div>
+                    </div>
+                    <p class="exp-desc">
+                        Managed a 10-member cross-functional team across recruitment and QA functions.
+                        Designed recruitment workflows from scratch and implemented HRMS/ATS systems.
+                    </p>
+                    <div class="exp-achievements">
+                        <div class="exp-achievement">Led a 10-member team across recruitment and QA functions</div>
+                        <div class="exp-achievement">Managed end-to-end hiring: sourcing, screening, interviews, and onboarding</div>
+                        <div class="exp-achievement">Designed recruitment workflows to improve speed and transparency</div>
+                        <div class="exp-achievement">Participated in client calls, team training, and HRMS/ATS design</div>
+                    </div>
+                    <div class="exp-skills">
+                        <span class="exp-skill-tag">Workflow Design</span>
+                        <span class="exp-skill-tag">ATS Implementation</span>
+                        <span class="exp-skill-tag">Naukri</span>
+                        <span class="exp-skill-tag">Onboarding</span>
+                        <span class="exp-skill-tag">Team Leadership</span>
+                        <span class="exp-skill-tag">Figma</span>
+                    </div>
+                </div>
+                <div class="exp-side-info">
+                    <div class="exp-side-stat reveal-right stagger-1">
+                        <p class="exp-side-label">DURATION</p>
+                        <p class="exp-side-value">12 Months</p>
+                    </div>
+                    <div class="exp-side-stat reveal-right stagger-2">
+                        <p class="exp-side-label">TEAM</p>
+                        <p class="exp-side-value">10 Members</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================
+             PANEL 7: SKILLS
+             ============================ -->
+        <section class="panel skills-panel" id="skills">
+            <div class="dot-grid"></div>
+            <div class="panel-inner">
+                <div class="skills-left">
+                    <p class="section-overline reveal-up">CAPABILITIES</p>
+                    <h2 class="skills-title reveal-up stagger-1">Tools &<br>Expertise</h2>
+                    <p class="skills-subtitle reveal-up stagger-2">
+                        4 years of hands-on experience across recruitment platforms, analytics tools, and creative design software.
+                    </p>
+                    <div class="glow-divider reveal-up stagger-3"></div>
+                </div>
+                <div class="skills-right">
+                    <div class="skill-row reveal-up stagger-1">
+                        <span class="skill-name">Boolean & X-Ray Search</span>
+                        <div style="display: flex; align-items: center;">
+                            <span class="skill-level">Expert</span>
+                            <div class="skill-bar-wrap"><div class="skill-bar" data-width="95"></div></div>
+                        </div>
+                    </div>
+                    <div class="skill-row reveal-up stagger-2">
+                        <span class="skill-name">ATS Systems</span>
+                        <div style="display: flex; align-items: center;">
+                            <span class="skill-level">Expert</span>
+                            <div class="skill-bar-wrap"><div class="skill-bar" data-width="92"></div></div>
+                        </div>
+                    </div>
+                    <div class="skill-row reveal-up stagger-3">
+                        <span class="skill-name">Advanced Excel</span>
+                        <div style="display: flex; align-items: center;">
+                            <span class="skill-level">Advanced</span>
+                            <div class="skill-bar-wrap"><div class="skill-bar" data-width="90"></div></div>
+                        </div>
+                    </div>
+                    <div class="skill-row reveal-up stagger-4">
+                        <span class="skill-name">Advanced Figma</span>
+                        <div style="display: flex; align-items: center;">
+                            <span class="skill-level">Advanced</span>
+                            <div class="skill-bar-wrap"><div class="skill-bar" data-width="85"></div></div>
+                        </div>
+                    </div>
+                    <div class="skill-row reveal-up stagger-5">
+                        <span class="skill-name">Team Leadership</span>
+                        <div style="display: flex; align-items: center;">
+                            <span class="skill-level">Advanced</span>
+                            <div class="skill-bar-wrap"><div class="skill-bar" data-width="88"></div></div>
+                        </div>
+                    </div>
+                    <div class="skill-row reveal-up stagger-6">
+                        <span class="skill-name">Recruitment Analytics</span>
+                        <div style="display: flex; align-items: center;">
+                            <span class="skill-level">Expert</span>
+                            <div class="skill-bar-wrap"><div class="skill-bar" data-width="91"></div></div>
+                        </div>
+                    </div>
+                    <div class="skill-row reveal-up stagger-7">
+                        <span class="skill-name">SQL / Python</span>
+                        <div style="display: flex; align-items: center;">
+                            <span class="skill-level">Basic</span>
+                            <div class="skill-bar-wrap"><div class="skill-bar" data-width="45"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================
+             PANEL 8: EDUCATION & CERTS
+             ============================ -->
+        <section class="panel edu-panel">
+            <div class="panel-inner">
+                <p class="edu-overline reveal-up">EDUCATION & CREDENTIALS</p>
+                <div class="edu-grid" style="margin-top: 40px;">
+                    <div class="edu-card reveal-up stagger-1" data-tilt>
+                        <p class="edu-degree">B.Tech — Computer Science</p>
+                        <p class="edu-school">ITS Engineering College, Greater Noida (AKTU)</p>
+                        <p class="edu-year">AUG 2017 — AUG 2021</p>
+                        <p class="edu-score">7.89</p>
+                        <p class="edu-highlight">Top 10 Startup Program • 1st in Inter-College Coding</p>
+                    </div>
+                    <div class="edu-card reveal-up stagger-2" data-tilt>
+                        <p class="edu-degree">12th — Science (PCM + CS)</p>
+                        <p class="edu-school">Aster Public School, Greater Noida (CBSE)</p>
+                        <p class="edu-year">MAY 2015 — MAY 2017</p>
+                        <p class="edu-score">72%</p>
+                        <p class="edu-highlight">Quiz competition winner • Annual Function Committee</p>
+                    </div>
+                    <div class="edu-card reveal-up stagger-3" data-tilt>
+                        <p class="edu-degree">10th — CBSE</p>
+                        <p class="edu-school">Shivam Convent School, Patna Bihar</p>
+                        <p class="edu-year">JUL 2012 — JUL 2014</p>
+                        <p class="edu-score">9.2</p>
+                        <p class="edu-highlight">International assessment participant • Logic building</p>
+                    </div>
+                </div>
+                <div class="cert-grid">
+                    <span class="cert-tag reveal-up stagger-1">Naukri Maestro (2025)</span>
+                    <span class="cert-tag reveal-up stagger-2">Master Hiring — Udemy</span>
+                    <span class="cert-tag reveal-up stagger-3">Talent Pipelines — Udemy</span>
+                    <span class="cert-tag reveal-up stagger-4">HR Payroll & Vendor — Udemy</span>
+                    <span class="cert-tag reveal-up stagger-5">Excel Beginner to Advanced</span>
+                    <span class="cert-tag reveal-up stagger-6">Ultimate MySQL Bootcamp</span>
+                    <span class="cert-tag reveal-up stagger-7">UI/UX Design Master</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================
+             PANEL 9: CONTACT
+             ============================ -->
+        <section class="panel contact-panel" id="contact">
+            <div class="panel-inner">
+                <p class="contact-overline reveal-up">GET IN TOUCH</p>
+                <h2 class="contact-headline reveal-up stagger-1">
+                    LET'S BUILD YOUR<br>DREAM TEAM.
+                </h2>
+                <div class="glow-divider reveal-up stagger-2" style="margin: 30px auto;"></div>
+                <a href="mailto:almasum.live@gmail.com" class="magnetic-btn reveal-up stagger-3" data-magnetic>
+                    CONTACT ME <span class="magnetic-btn-arrow">↗</span>
+                </a>
+                <div class="contact-links reveal-up stagger-4">
+                    <a href="mailto:almasum.live@gmail.com" class="contact-link">EMAIL</a>
+                    <a href="https://linkedin.com/in/connect2masum" target="_blank" class="contact-link">LINKEDIN</a>
+                    <a href="tel:8391870796" class="contact-link">PHONE</a>
+                    <a href="https://wa.me/918391870796" target="_blank" class="contact-link">WHATSAPP</a>
+                </div>
+                <div class="contact-notice reveal-up stagger-5">
+                    NOTICE: 30 DAYS OFFICIAL / 15 DAYS OR LESS NEGOTIABLE
+                </div>
+                <p class="contact-footer reveal-up stagger-6">
+                    DESIGNED WITH PRECISION / 2026
+                </p>
+            </div>
+        </section>
+
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>

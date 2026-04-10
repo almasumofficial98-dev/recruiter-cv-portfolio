@@ -80,11 +80,11 @@
     // ============================================================
     // 3. THREE.JS INTERACTIVE PARTICLE HERO
     // ============================================================
-    let threeScene, threeCamera, threeRenderer, particleSystem;
+    let threeScene, threeCamera, threeRenderer, particleSystem, linesMesh;
     let particleMouseX = 0, particleMouseY = 0;
+    let particlePositions; // Store original positions for restoration
 
     function initThreeJS() {
-        // Guard: Three.js must be loaded
         if (typeof THREE === 'undefined') {
             console.warn('Three.js not loaded — skipping particle hero');
             return;
@@ -93,74 +93,98 @@
         const canvas = document.getElementById('hero-canvas');
         if (!canvas) return;
 
-        // Scene setup
         threeScene = new THREE.Scene();
         threeCamera = new THREE.PerspectiveCamera(
-            75,
-            window.innerWidth / window.innerHeight,
-            0.1,
-            1000
+            75, window.innerWidth / window.innerHeight, 0.1, 1000
         );
-        threeCamera.position.z = 50;
+        threeCamera.position.z = 45;
 
-        // Renderer
         threeRenderer = new THREE.WebGLRenderer({
-            canvas: canvas,
-            alpha: true,
-            antialias: true,
+            canvas, alpha: true, antialias: true,
         });
         threeRenderer.setSize(window.innerWidth, window.innerHeight);
         threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-        // Create particle geometry
-        const particleCount = 2000;
-        const geometry = new THREE.BufferGeometry();
-        const positions = new Float32Array(particleCount * 3);
-        const colors = new Float32Array(particleCount * 3);
+        // --- PREMIUM CONSTELLATION NETWORK ---
+        // Layer 1: Large glowing nodes (fewer, brighter)
+        const nodeCount = 120;
+        const nodeGeo = new THREE.BufferGeometry();
+        const nodePos = new Float32Array(nodeCount * 3);
+        const nodeColors = new Float32Array(nodeCount * 3);
+        particlePositions = new Float32Array(nodeCount * 3);
 
-        for (let i = 0; i < particleCount; i++) {
-            // Spread particles in a 3D sphere-ish distribution
-            positions[i * 3] = (Math.random() - 0.5) * 100;
-            positions[i * 3 + 1] = (Math.random() - 0.5) * 80;
-            positions[i * 3 + 2] = (Math.random() - 0.5) * 60;
+        for (let i = 0; i < nodeCount; i++) {
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            const r = 15 + Math.random() * 30;
+            nodePos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+            nodePos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+            nodePos[i * 3 + 2] = r * Math.cos(phi);
+            particlePositions[i * 3] = nodePos[i * 3];
+            particlePositions[i * 3 + 1] = nodePos[i * 3 + 1];
+            particlePositions[i * 3 + 2] = nodePos[i * 3 + 2];
 
-            // Colors: accent-tinted with variation
-            const intensity = 0.3 + Math.random() * 0.7;
-            colors[i * 3] = intensity;           // Red
-            colors[i * 3 + 1] = intensity * 0.24; // Green (orange tint)
-            colors[i * 3 + 2] = 0;               // Blue
+            const brightness = 0.5 + Math.random() * 0.5;
+            nodeColors[i * 3] = brightness;
+            nodeColors[i * 3 + 1] = brightness * 0.3;
+            nodeColors[i * 3 + 2] = brightness * 0.05;
         }
 
-        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        nodeGeo.setAttribute('position', new THREE.BufferAttribute(nodePos, 3));
+        nodeGeo.setAttribute('color', new THREE.BufferAttribute(nodeColors, 3));
 
-        // Material with additive blending for glow effect
-        const material = new THREE.PointsMaterial({
-            size: 0.8,
-            vertexColors: true,
-            transparent: true,
-            opacity: 0.6,
-            blending: THREE.AdditiveBlending,
-            sizeAttenuation: true,
+        const nodeMat = new THREE.PointsMaterial({
+            size: 2.5, vertexColors: true, transparent: true, opacity: 0.85,
+            blending: THREE.AdditiveBlending, sizeAttenuation: true,
         });
-
-        particleSystem = new THREE.Points(geometry, material);
+        particleSystem = new THREE.Points(nodeGeo, nodeMat);
         threeScene.add(particleSystem);
 
-        // Track mouse for particle interaction
+        // Layer 2: Fine dust particles (many, subtle)
+        const dustCount = 800;
+        const dustGeo = new THREE.BufferGeometry();
+        const dustPos = new Float32Array(dustCount * 3);
+        const dustColors = new Float32Array(dustCount * 3);
+        for (let i = 0; i < dustCount; i++) {
+            dustPos[i * 3] = (Math.random() - 0.5) * 100;
+            dustPos[i * 3 + 1] = (Math.random() - 0.5) * 80;
+            dustPos[i * 3 + 2] = (Math.random() - 0.5) * 60;
+            dustColors[i * 3] = 0.6; dustColors[i * 3 + 1] = 0.15; dustColors[i * 3 + 2] = 0.0;
+        }
+        dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+        dustGeo.setAttribute('color', new THREE.BufferAttribute(dustColors, 3));
+        const dustMat = new THREE.PointsMaterial({
+            size: 0.4, vertexColors: true, transparent: true, opacity: 0.25,
+            blending: THREE.AdditiveBlending, sizeAttenuation: true,
+        });
+        const dustSystem = new THREE.Points(dustGeo, dustMat);
+        threeScene.add(dustSystem);
+
+        // Layer 3: Connection lines between nearby nodes
+        const lineGeo = new THREE.BufferGeometry();
+        const maxLines = nodeCount * 3;
+        const linePositions = new Float32Array(maxLines * 6);
+        lineGeo.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
+        lineGeo.setDrawRange(0, 0);
+        const lineMat = new THREE.LineBasicMaterial({
+            color: 0xFF3D00, transparent: true, opacity: 0.08,
+            blending: THREE.AdditiveBlending,
+        });
+        linesMesh = new THREE.LineSegments(lineGeo, lineMat);
+        threeScene.add(linesMesh);
+
+        // Mouse tracking
         document.addEventListener('mousemove', (e) => {
             particleMouseX = (e.clientX / window.innerWidth - 0.5) * 2;
             particleMouseY = -(e.clientY / window.innerHeight - 0.5) * 2;
         });
 
-        // Handle window resize
         window.addEventListener('resize', () => {
             threeCamera.aspect = window.innerWidth / window.innerHeight;
             threeCamera.updateProjectionMatrix();
             threeRenderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // Start the Three.js render loop
         animateThreeJS();
     }
 
@@ -168,27 +192,58 @@
         requestAnimationFrame(animateThreeJS);
         if (!particleSystem || !threeRenderer) return;
 
-        const time = Date.now() * 0.0005;
+        const time = Date.now() * 0.0003;
+        const nodePositions = particleSystem.geometry.attributes.position.array;
+        const nodeCount = nodePositions.length / 3;
 
-        // Rotate particle field based on time + mouse
-        particleSystem.rotation.y = time * 0.08 + particleMouseX * 0.3;
-        particleSystem.rotation.x = particleMouseY * 0.15;
+        // Gentle orbit + mouse reaction
+        particleSystem.rotation.y = time * 0.15 + particleMouseX * 0.2;
+        particleSystem.rotation.x = Math.sin(time * 0.3) * 0.1 + particleMouseY * 0.1;
 
-        // Gentle wave motion on Y positions
-        const positions = particleSystem.geometry.attributes.position.array;
-        for (let i = 0; i < positions.length; i += 3) {
-            positions[i + 1] += Math.sin(time * 2 + positions[i] * 0.05) * 0.008;
+        // Breathe effect: nodes gently drift from original position
+        for (let i = 0; i < nodeCount; i++) {
+            const ix = i * 3, iy = i * 3 + 1, iz = i * 3 + 2;
+            nodePositions[ix] = particlePositions[ix] + Math.sin(time + i * 0.5) * 0.8;
+            nodePositions[iy] = particlePositions[iy] + Math.cos(time * 0.7 + i * 0.3) * 0.6;
+            nodePositions[iz] = particlePositions[iz] + Math.sin(time * 0.5 + i * 0.8) * 0.4;
         }
         particleSystem.geometry.attributes.position.needsUpdate = true;
 
-        // Fade particles as user scrolls away from hero
+        // Update connection lines (connect nodes within threshold distance)
+        if (linesMesh) {
+            const linePos = linesMesh.geometry.attributes.position.array;
+            let lineIdx = 0;
+            const threshold = 18;
+
+            for (let i = 0; i < nodeCount && lineIdx < linePos.length - 6; i++) {
+                for (let j = i + 1; j < nodeCount && lineIdx < linePos.length - 6; j++) {
+                    const dx = nodePositions[i * 3] - nodePositions[j * 3];
+                    const dy = nodePositions[i * 3 + 1] - nodePositions[j * 3 + 1];
+                    const dz = nodePositions[i * 3 + 2] - nodePositions[j * 3 + 2];
+                    const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+                    if (dist < threshold) {
+                        linePos[lineIdx++] = nodePositions[i * 3];
+                        linePos[lineIdx++] = nodePositions[i * 3 + 1];
+                        linePos[lineIdx++] = nodePositions[i * 3 + 2];
+                        linePos[lineIdx++] = nodePositions[j * 3];
+                        linePos[lineIdx++] = nodePositions[j * 3 + 1];
+                        linePos[lineIdx++] = nodePositions[j * 3 + 2];
+                    }
+                }
+            }
+            linesMesh.geometry.attributes.position.needsUpdate = true;
+            linesMesh.geometry.setDrawRange(0, lineIdx / 3);
+        }
+
+        // Fade on scroll
         const scrollFade = Math.max(0.02, 1 - scrollCurrent / (window.innerWidth * 3));
-        particleSystem.material.opacity = scrollFade * 0.6;
+        particleSystem.material.opacity = scrollFade * 0.85;
+        if (linesMesh) linesMesh.material.opacity = scrollFade * 0.08;
 
         threeRenderer.render(threeScene, threeCamera);
     }
 
-    // Initialize Three.js after a brief delay for DOM readiness
     setTimeout(initThreeJS, 100);
 
     // ============================================================
@@ -696,12 +751,23 @@
             if (soundEnabled && !audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
-            if (soundEnabled) playSound(600, 0.05, 0.15);
+            // Resume suspended context (Chrome autoplay policy)
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            if (soundEnabled) {
+                // Short delay to let context resume
+                setTimeout(() => playSound(600, 0.1, 0.2), 50);
+            }
         });
     }
 
     function playSound(freq, vol, duration) {
         if (!soundEnabled || !audioCtx) return;
+        // Always try to resume if suspended
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
         try {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
@@ -717,7 +783,7 @@
             osc.start();
             osc.stop(audioCtx.currentTime + duration);
         } catch (e) {
-            // Silently fail if audio context is suspended
+            console.log('Audio error:', e.message);
         }
     }
 

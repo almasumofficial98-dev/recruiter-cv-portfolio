@@ -453,6 +453,9 @@ button { cursor: none; border: none; background: none; font-family: inherit; }
     justify-content: flex-start;
     align-items: flex-end;
     padding-bottom: 100px;
+    background: radial-gradient(ellipse 80% 50% at 50% 50%, rgba(255, 61, 0, 0.06) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 80% at 20% 80%, rgba(20, 10, 5, 0.8) 0%, transparent 50%),
+                radial-gradient(ellipse 50% 60% at 80% 20%, rgba(30, 15, 5, 0.6) 0%, transparent 50%);
 }
 
 .hero-bg {
@@ -1139,7 +1142,8 @@ button { cursor: none; border: none; background: none; font-family: inherit; }
     align-items: center;
     justify-content: center;
     text-align: center;
-    gap: var(--space-lg);
+    gap: var(--space-sm);
+    padding-top: var(--header-height);
 }
 
 .contact-overline {
@@ -1147,14 +1151,15 @@ button { cursor: none; border: none; background: none; font-family: inherit; }
     letter-spacing: 6px;
     text-transform: uppercase;
     color: var(--text-muted);
+    margin-top: var(--space-md);
 }
 
 .contact-headline {
-    font-size: var(--fs-h1);
+    font-size: clamp(36px, 5vw, 80px);
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: -4px;
-    line-height: 0.95;
+    letter-spacing: -3px;
+    line-height: 1;
 }
 
 .contact-headline .word {
@@ -1775,4 +1780,75 @@ body.transitioning * { transition: background-color 0.6s ease, color 0.6s ease, 
     .floating-controls { left: 10px; }
     .whatsapp-widget { bottom: 20px; right: 20px; }
     .float-btn { width: 36px; height: 36px; }
+}
+
+/* ============================================================
+   37. PRINT STYLESHEET — Full PDF Export
+   ============================================================ */
+@media print {
+    * { animation: none !important; transition: none !important; }
+
+    body { background: #fff !important; color: #111 !important; }
+
+    /* Hide non-printable elements */
+    .cursor, .cursor-trail, #noise-canvas, #hero-canvas,
+    .loader, .site-header, .progress-track, .panel-counter,
+    .fullscreen-menu, .floating-controls, .whatsapp-widget,
+    .modal-overlay, .easter-egg, .hero-scroll-indicator,
+    .dot-grid, .marquee-wrap, .exp-panel-number { display: none !important; }
+
+    /* Convert horizontal to vertical layout */
+    .scroll-container {
+        display: block !important;
+        transform: none !important;
+        width: 100% !important;
+        height: auto !important;
+    }
+
+    .panel {
+        width: 100% !important;
+        height: auto !important;
+        min-height: auto !important;
+        page-break-inside: avoid;
+        padding: 30px 20px !important;
+        display: block !important;
+    }
+
+    .panel-inner {
+        opacity: 1 !important;
+        transform: none !important;
+        max-width: 100% !important;
+    }
+
+    /* Force reveal all hidden content */
+    .reveal-up, .reveal-left, .reveal-right, .reveal-scale,
+    .exp-side-stat, .word-inner, .char {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+
+    .hero-title { font-size: 48px !important; }
+    .contact-headline { font-size: 32px !important; }
+
+    /* Style adjustments for print */
+    .exp-card, .edu-card, .blog-card, .case-metric-card,
+    .metric-chart-card, .testimonial-card {
+        background: #f9f9f9 !important;
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+    }
+
+    .testimonial-card { position: relative !important; opacity: 1 !important; transform: none !important; margin-bottom: 10px; }
+    .testimonial-card.active { position: relative !important; }
+
+    .gradient-text { -webkit-text-fill-color: #FF3D00 !important; }
+    .skill-bar { background: #FF3D00 !important; }
+    .funnel-step { width: 100% !important; }
+    .m-bar-fill { width: 100% !important; }
+
+    .orbit-container { display: none !important; }
+    .case-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    .blog-grid { grid-template-columns: 1fr !important; }
+    .metrics-grid { grid-template-columns: 1fr !important; }
+    .timeline { flex-wrap: wrap !important; }
 }

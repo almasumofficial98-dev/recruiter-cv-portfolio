@@ -1194,6 +1194,20 @@
         updateTextSkew();
         checkScrollSound();
 
+        // Fade bg.png and smoke as user scrolls
+        const heroBg = document.getElementById('hero-bg');
+        const heroSmoke = document.querySelector('.hero-smoke');
+        if (heroBg) {
+            const fadeStart = window.innerWidth * 0.3;
+            const fadeEnd = window.innerWidth * 3;
+            const bgOpacity = Math.max(0, 1 - (scrollCurrent - fadeStart) / (fadeEnd - fadeStart));
+            heroBg.style.opacity = Math.max(0, bgOpacity);
+        }
+        if (heroSmoke) {
+            const smokeOpacity = Math.max(0, 1 - scrollCurrent / (window.innerWidth * 4));
+            heroSmoke.style.opacity = smokeOpacity;
+        }
+
         requestAnimationFrame(mainLoop);
     }
 
